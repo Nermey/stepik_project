@@ -1,0 +1,24 @@
+services:
+  db_auth:
+    container_name: db_auth
+    restart: always
+    image: postgres:15.2
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_AUTH_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_AUTH_PASSWORD}
+      POSTGRES_DB: db_auth
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "${POSTGRES_AUTH_PORT}:${POSTGRES_AUTH_PORT}"
+    expose:
+      - "${POSTGRES_AUTH_PORT}"
+    command:
+      - "postgres"
+      - "-c"
+      - "port=${POSTGRES_AUTH_PORT}"
+#    networks:
+#      - auth
+
