@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 
+
 class Settings:
     def __init__(self):
         load_dotenv(override=True)  # Загрузка переменных каждый раз
