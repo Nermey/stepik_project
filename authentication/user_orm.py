@@ -1,39 +1,47 @@
-from database import session
-from sqlalchemy import Index, select
-from sqlalchemy.schema import CreateIndex
-from model import User
-from schema import UserDTO
+from passlib.context import CryptContext
+from .database import session
+from sqlalchemy import select
+from .model import User, Roles
+from schemas.user import User as UserModel
+from fastapi import HTTPException
+
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
 
 
 class Auth_obj:
     @staticmethod
-    async def add_new_user(email, password, name, surname, phone_number):
+    async def add_new_user(user: UserModel) -> None:
         async with session() as conn:
-            user_obj = User(email=email, password=password, name=name, surname=surname, phone_number=phone_number)
-            conn.add(user_obj)
-            await conn.commit()
+            new_user = User(email=user.email, password=get_password_hash(user.password), name=user.name,
+                            surname=user.surname, phone_number=user.phone_number, role=Roles.user)
+            try:
+                conn.add(new_user)
+                await conn.commit()
+            except Exception as e:
+                raise HTTPException(status_code=409, detail="User is already exist")  # TODO вернуть id нового пользователя так можно так что ищи
 
     @staticmethod
-    async def check_user_exist(email):
+    async def authenticate(email, password):
         async with session() as conn:
             query = select(User).filter_by(email=email)
             res = await conn.execute(query)
-            user = res.first()
-            return user is None
+            user = res.scalars().first()
+            if user is None:
+                raise HTTPException(status_code=404, detail="user not found")
 
+            if not verify_password(password, user.password):
+                raise HTTPException(status_code=401, detail="incorrect password")
 
-# TODO сделать механизм аутентификации и настроить миграции
-    @staticmethod
-    async def authentication(email, password):
-        async with session() as conn:
-            query = select(User).filter_by(email=email, password=password)
-            res = await conn.execute(query)
-            user = res.scalars().all()
-            user_dto = [UserDTO.model_validate(row, from_attributes=True) for row in user]
-            if not user_dto:
-                return []
-            return [len(user) != 0, {"id": user_dto[0].id,
-                                     "type:": user_dto[0].type}]
+            return user.id, user.role
 
     @staticmethod
     async def update_user_data(user_id, **data):
