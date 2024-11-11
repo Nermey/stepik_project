@@ -18,4 +18,3 @@ class Settings:
 
 
 settings = Settings()
-print(settings.SECRET_KEY)
