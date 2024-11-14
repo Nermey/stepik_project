@@ -4,7 +4,7 @@ services:
     restart: always
     image: postgres:15.2
     env_file:
-      - .env
+      - /authentication/.env
     environment:
       POSTGRES_USER: ${POSTGRES_AUTH_USER}
       POSTGRES_PASSWORD: ${POSTGRES_AUTH_PASSWORD}

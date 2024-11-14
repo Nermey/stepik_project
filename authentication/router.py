@@ -29,3 +29,6 @@ async def authenticate(response: Response, login: str, password: str):
 
 
 # TODO delete and put queries
+@router.delete("/")
+async def delete_user(user_id: int):
+    await Auth_obj.delete_user(user_id)

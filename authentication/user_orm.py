@@ -52,3 +52,13 @@ class Auth_obj:
                     if hasattr(user, param):
                         setattr(user, param, new_value)
             await conn.commit()
+
+    @staticmethod
+    async def delete_user(user_id):
+        async with session() as conn:
+            user_to_delete = await conn.get(User, user_id)
+            if not user_to_delete:
+                HTTPException(status_code=404, detail="user not found")
+
+            await conn.delete(user_to_delete)
+            await conn.commit()
