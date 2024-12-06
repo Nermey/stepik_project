@@ -23,3 +23,15 @@ class User(Base):
         Index("auth_idx", "email", "password"),
         Index("email_idx", "email")
     )
+
+
+class Courses(Base):
+    __tablename__ = "courses"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    link: Mapped[str]
+    name: Mapped[str]
+    tag: Mapped[str]
+
+    __tableargs__ = (
+        Index("tag_idx", "tag")
+    )
